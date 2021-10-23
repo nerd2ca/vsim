@@ -225,24 +225,25 @@ var P = {
     view: function(Pnode) {
         var elements = this.elements
         return m('.container-fluid', [
-            ['scenario A', 'scenario B'].map((label, scenario) => {
-                return [m('.row', [
-                    m('.col-1', m('.', {style: {height: '1.5em'}}), label),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].infected0, label: ['infections', m('sub', '0')], hint: 'initial number of infections on day 0'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].R0, label: ['R', m('sub', '0')], decimals: 2, hint: 'average transmissions per case (unvaccinated baseline)'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].infectionDuration, label: 'infected.days', hint: 'average time to recover/die from infection'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].icuRate, label: 'icu%', pct: true, hint: '% infected people who need ICU beds'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].deathRate, label: 'death%', pct: true, hint: '% infected people who die'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].naturalImmunity, label: 'nat.imm.prot%', pct: true, hint: 'natural immunity after recovering from infection'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].naturalImmunityHalflife, label: 'nat.imm.halflife', hint: 'days natural immunity takes to fade to 1/2 effectiveness'})),
-                ]), m('.row', [
+            [{label: 'scenario A', bg: '#eeeeff'}, {label: 'scenario B', bg: '#eeffee'}].map((row, scenario) => {
+                var sc = this.scenario[scenario]
+                return [m('.row', {style: {background: row.bg}}, [
+                    m('.col-1', m('.', {style: {height: '1.5em'}}), row.label),
+                    m('.col-1', m(configInput, {stream: sc.infected0, label: ['infections', m('sub', '0')], hint: 'initial number of infections on day 0'})),
+                    m('.col-1', m(configInput, {stream: sc.R0, label: ['R', m('sub', '0')], decimals: 2, hint: 'average transmissions per case (unvaccinated baseline)'})),
+                    m('.col-1', m(configInput, {stream: sc.infectionDuration, label: 'infected.days', hint: 'average time to recover/die from infection'})),
+                    m('.col-1', m(configInput, {stream: sc.icuRate, label: 'icu%', pct: true, hint: '% infected people who need ICU beds'})),
+                    m('.col-1', m(configInput, {stream: sc.deathRate, label: 'death%', pct: true, hint: '% infected people who die'})),
+                    m('.col-1', m(configInput, {stream: sc.naturalImmunity, label: 'nat.imm.prot%', pct: true, hint: 'natural immunity after recovering from infection'})),
+                    m('.col-1', m(configInput, {stream: sc.naturalImmunityHalflife, label: 'nat.imm.halflife', hint: 'days natural immunity takes to fade to 1/2 effectiveness'})),
+                ]), m('.row', {style: {background: row.bg}}, [
                     m('.col-1'),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineRate, label: 'vaccinated%', pct: true, hint: '% population vaccinated'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineInfectEff[1], label: 'vacc.prot.inf%', pct: true, hint: 'vaccine effectiveness at preventing infection'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineTransmitEff[1], label: 'vacc.prot.trans%', pct: true, hint: 'vaccine effectiveness at reducing contagiousness, once infected'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineIcuEff[1], label: 'vacc.prot.icu%', pct: true, hint: 'vaccine effectiveness at preventing severe symptoms / need for an ICU bed, once infected'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineDeathEff[1], label: 'vacc.prot.death%', pct: true, hint: 'vaccine effectiveness at preventing death, once infected'})),
-                    m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineHalflife[1], label: 'vacc.halflife', hint: 'days vaccine takes to fade to 1/2 effectiveness'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineRate, label: 'vaccinated%', pct: true, hint: '% population vaccinated'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineInfectEff[1], label: 'vacc.prot.inf%', pct: true, hint: 'vaccine effectiveness at preventing infection'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineTransmitEff[1], label: 'vacc.prot.trans%', pct: true, hint: 'vaccine effectiveness at reducing contagiousness, once infected'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineIcuEff[1], label: 'vacc.prot.icu%', pct: true, hint: 'vaccine effectiveness at preventing severe symptoms / need for an ICU bed, once infected'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineDeathEff[1], label: 'vacc.prot.death%', pct: true, hint: 'vaccine effectiveness at preventing death, once infected'})),
+                    m('.col-1', m(configInput, {stream: sc.vaccineHalflife[1], label: 'vacc.halflife', hint: 'days vaccine takes to fade to 1/2 effectiveness'})),
                 ])]
             }),
             m('.row', {style: {height: '50%'}}, [
