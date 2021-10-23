@@ -205,6 +205,11 @@ var P = {
                         var pp2 = store.person[p2]
                         var fade = Math.pow(0.5, x / store.vaccineHalflife[pp.vaccine]())
                         var fade2 = Math.pow(0.5, x / store.vaccineHalflife[pp2.vaccine]())
+                        var fadeNat = 0
+                        if (pp2.recovered > x || pp2.dead >= 0)
+                            continue
+                        if (pp2.recovered <= x)
+                            fadeNat = Math.pow(0.5, (x - pp2.recovered) / store.naturalImmunityHalflife())
                         if (!(pp2.infected <= x && (pp2.recovered >= x || pp2.dead >= x)) &&
                             Math.random() < (1 - fade * store.vaccineTransmitEff[pp.vaccine]()) * (1 - fade2 * store.vaccineInfectEff[pp2.vaccine]())) {
                             this.infect(pp2, x, store, fade2)
@@ -221,22 +226,26 @@ var P = {
         var elements = this.elements
         return m('.container-fluid', [
             ['scenario A', 'scenario B'].map((label, scenario) => {
-                return m('.row', [
+                return [m('.row', [
                     m('.col-1', m('.', {style: {height: '1.5em'}}), label),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].infected0, label: ['infections', m('sub', '0')], hint: 'initial number of infections on day 0'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].R0, label: ['R', m('sub', '0')], decimals: 2, hint: 'average transmissions per case (unvaccinated baseline)'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].infectionDuration, label: 'infected.days', hint: 'average time to recover/die from infection'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].icuRate, label: 'icu%', pct: true, hint: '% infected people who need ICU beds'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].deathRate, label: 'death%', pct: true, hint: '% infected people who die'})),
+                    m('.col-1', m(configInput, {stream: this.scenario[scenario].naturalImmunity, label: 'nat.imm.prot%', pct: true, hint: 'natural immunity after recovering from infection'})),
+                    m('.col-1', m(configInput, {stream: this.scenario[scenario].naturalImmunityHalflife, label: 'nat.imm.halflife', hint: 'days natural immunity takes to fade to 1/2 effectiveness'})),
+                ]), m('.row', [
+                    m('.col-1'),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineRate, label: 'vaccinated%', pct: true, hint: '% population vaccinated'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineInfectEff[1], label: 'vacc.prot.inf%', pct: true, hint: 'vaccine effectiveness at preventing infection'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineTransmitEff[1], label: 'vacc.prot.trans%', pct: true, hint: 'vaccine effectiveness at reducing contagiousness, once infected'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineIcuEff[1], label: 'vacc.prot.icu%', pct: true, hint: 'vaccine effectiveness at preventing severe symptoms / need for an ICU bed, once infected'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineDeathEff[1], label: 'vacc.prot.death%', pct: true, hint: 'vaccine effectiveness at preventing death, once infected'})),
                     m('.col-1', m(configInput, {stream: this.scenario[scenario].vaccineHalflife[1], label: 'vacc.halflife', hint: 'days vaccine takes to fade to 1/2 effectiveness'})),
-                ])
+                ])]
             }),
-            m('.row', {style: {height: '70%'}}, [
+            m('.row', {style: {height: '50%'}}, [
                 m('.col-1.h-100', {
                     style: {padding: '0'},
                     oncreate: (vnode) => { elements.axisy = vnode.dom; this.setup() },
@@ -295,6 +304,8 @@ var Page = {
                     0: m.stream(1),
                     1: m.stream(365),
                 },
+                naturalImmunity: m.stream(0.8),
+                naturalImmunityHalflife: m.stream(365),
                 vaccineRate: m.stream(vr),
             }}),
         }
