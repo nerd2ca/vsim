@@ -237,8 +237,8 @@ var P = {
                     m('.col-1', m(configInput, {stream: sc.infected0, label: ['infections', m('sub', '0')], hint: 'initial number of infections on day 0'})),
                     m('.col-1', m(configInput, {stream: sc.R0, label: ['R', m('sub', '0')], decimals: 2, hint: 'average transmissions per case (unvaccinated baseline)'})),
                     m('.col-1', m(configInput, {stream: sc.infectionDuration, label: 'infected.days', hint: 'average time to recover/die from infection'})),
-                    m('.col-1', m(configInput, {stream: sc.icuRate, label: 'icu%', pct: true, hint: '% infected people who need ICU beds'})),
-                    m('.col-1', m(configInput, {stream: sc.deathRate, label: 'death%', pct: true, hint: '% infected people who die'})),
+                    m('.col-1', m(configInput, {stream: sc.icuRate, label: 'icu%', pct: true, hint: '% infected people who need ICU (unvaccinated baseline)'})),
+                    m('.col-1', m(configInput, {stream: sc.deathRate, label: 'death%', pct: true, hint: '% infected people who die (unvaccinated baseline)'})),
                     m('.col-1', m(configInput, {stream: sc.naturalImmunity, label: 'nat.imm.prot%', pct: true, hint: 'natural immunity after recovering from infection'})),
                     m('.col-1', m(configInput, {stream: sc.naturalImmunityHalflife, label: 'nat.imm.halflife', hint: 'days natural immunity takes to fade to 1/2 effectiveness'})),
                 ]), m('.row', {style: {background: row.bg}}, [
