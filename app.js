@@ -39,8 +39,8 @@ var P = {
                 var seriesName = `${scenarioName}: ${seriesKey}`
                 var what = ({
                     cases: 'new cases detected today',
-                    deaths: 'new deaths today',
-                    icu: 'patients in ICU beds today',
+                    deaths: 'total deaths since day 0',
+                    icu: 'patients in ICU today',
                 })[seriesKey]
                 this.series[seriesKey+scenario] = {
                     name: seriesName,
@@ -55,7 +55,8 @@ var P = {
                         return `${x}d`
                     },
                     formatter: (series, x, y) => {
-                        return `${scenarioName}<br>day ${x}<br>${Math.round(y)} ${what}`
+                        var more = series.data[x].unvaccinated ? `<br>(${series.data[x].unvaccinated} of them are unvaccinated)` : ``
+                        return `${scenarioName}<br>day ${x}<br>${Math.round(y)} ${what}${more}`
                     },
                     color: palette.color(scenario*6+seriesIdx),
                 }
@@ -188,17 +189,21 @@ var P = {
         var x = this.today
         var cases = 0
         var icu = 0
+        var icuUnvaccinated = 0
         var deaths = 0
         var dailyR0 = store.R0() / store.infectionDuration()
         for (var p in store.person) {
             var pp = store.person[p]
-            if (pp.dead == x)
+            if (pp.dead <= x)
                 deaths++
             if (!(pp.dead >= x)) {
                 if (pp.detected == x)
                     cases++
-                if (pp.icu !== null && pp.icu <= x && !(pp.recovered <= x))
+                if (pp.icu !== null && pp.icu <= x && !(pp.recovered <= x)) {
                     icu++
+                    if (pp.vaccine < 1)
+                        icuUnvaccinated++
+                }
                 if (pp.infected <= x && !(pp.recovered < x || pp.dead < x)) {
                     if (Math.random() < dailyR0) {
                         var p2 = Math.floor(Math.random() * store.population())
@@ -219,7 +224,7 @@ var P = {
             }
         }
         this.series['cases'+scenarioIdx].data[x] = {x:x,y:cases}
-        this.series['icu'+scenarioIdx].data[x] = {x:x,y:icu}
+        this.series['icu'+scenarioIdx].data[x] = {x:x,y:icu,unvaccinated:icuUnvaccinated}
         this.series['deaths'+scenarioIdx].data[x] = {x:x,y:deaths}
     },
     view: function(Pnode) {
@@ -246,7 +251,7 @@ var P = {
                     m('.col-1', m(configInput, {stream: sc.vaccineHalflife[1], label: 'vacc.halflife', hint: 'days vaccine takes to fade to 1/2 effectiveness'})),
                 ])]
             }),
-            m('.row', {style: {height: '50%'}}, [
+            m('.row', {style: {minHeight: '30em'}}, [
                 m('.col-1.h-100', {
                     style: {padding: '0'},
                     oncreate: (vnode) => { elements.axisy = vnode.dom; this.setup() },
@@ -261,7 +266,7 @@ var P = {
                     }),
                 ]),
             ]),
-            m('.row', {style: {height: '10%'}}, [
+            m('.row', {style: {}}, [
                 m('.col-1.h-100'),
                 m('.col-9.h-100', {
                     style: {padding: '0'},
@@ -277,9 +282,9 @@ var Page = {
         this.store = {
             params: {
                 population: m.stream(100000),
-                days: m.stream(180),
+                days: m.stream(250),
             },
-            scenario: [0.65, 0.75].map((vr) => { return {
+            scenario: [0.75, 0.9].map((vr) => { return {
                 infected0: m.stream(100),
                 R0: m.stream(2),
                 infectionDuration: m.stream(14),
@@ -313,19 +318,20 @@ var Page = {
     },
     view: function(vnode) {
         return m('.container-fluid', {style: {fontSize: '0.7rem'}}, [
-            m('.row', {style: {height: '5%'}}, [
+            m('.row', [
                 m('.col-12', [
-                    m('h3.text-center', 'virus simulator*'),
+                    m('h3.text-center', 'virus simulator *'),
                 ]),
             ]),
             m('.row', [
+                m('.col-1'),
                 m('.col-1', m(configInput, {stream: this.store.params.population, label: 'population'})),
                 m('.col-1', m(configInput, {stream: this.store.params.days, label: 'days'})),
             ]),
-            m('.row', {style: {height: '80%'}}, [
+            m('.row', [
                 m(P, {store: this.store}),
             ]),
-            m('.row', {style: {height: '5%'}}, [
+            m('.row', [
                 m('.col-12', [
                     m('p.text-center', {style: {fontSize: '0.8rem', fontStyle: 'italic'}}, '* for entertainment purposes only'),
                 ]),
