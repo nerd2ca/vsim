@@ -43,9 +43,10 @@ var P = {
                     icu: 'patients in ICU today',
                 })[seriesKey]
                 this.series[seriesKey+scenario] = {
+                    seriesKey: seriesKey,
                     name: seriesName,
                     data: [],
-                    scale: d3.scale.linear().domain([-2, 100]),
+                    scale: d3.scale.linear().domain([0, 100]),
                     xdate: (x) => {
                         var d = new Date()
                         d.setDate(d.getDate() + x)
@@ -55,6 +56,7 @@ var P = {
                         return `${x}d`
                     },
                     formatter: (series, x, y) => {
+                        if (!series.name) return ''
                         var more = series.data[x].unvaccinated ? `<br>(${series.data[x].unvaccinated} of them are unvaccinated)` : ``
                         return `${scenarioName}<br>day ${x}<br>${Math.round(y)} ${what}${more}`
                     },
@@ -78,6 +80,7 @@ var P = {
             this.graph.setSize()
             this.xaxis.setSize()
             this.yaxis.setSize()
+            this.y2axis.setSize()
             this.graph.render()
         })
         var allstreams = []
@@ -98,7 +101,7 @@ var P = {
         })
     },
     setup: function() {
-        if (!(this.elements.graph && this.elements.axisx && this.elements.axisy && this.elements.legend))
+        if (!(this.elements.graph && this.elements.axisx && this.elements.axisy && this.elements.axisy2 && this.elements.legend))
             return null
         this.graph = new Rickshaw.Graph({
             element: this.elements.graph,
@@ -123,6 +126,12 @@ var P = {
             graph: this.graph,
             orientation: 'left',
             scale: this.series.cases0.scale,
+        });
+        this.y2axis = new Rickshaw.Graph.Axis.Y.Scaled({
+            element: this.elements.axisy2,
+            graph: this.graph,
+            orientation: 'right',
+            scale: this.series.deaths0.scale,
         });
         this.xaxis = new Rickshaw.Graph.Axis.X({
             element: this.elements.axisx,
@@ -150,14 +159,16 @@ var P = {
         var starttime = new Date().getTime()
         this.scenario.forEach(this.runScenario, this)
 
-        var max = 1
+        var max = {cases: 0, deaths:0, icu: 0}
         Object.values(this.series).forEach((series) => {
-            series.data.forEach((pt) => {
-                if (max < pt.y) max = pt.y
-            })
+            if (series.seriesKey in max)
+                series.data.forEach((pt) => {
+                    if (max[series.seriesKey] < pt.y) max[series.seriesKey] = pt.y
+                })
         })
         Object.values(this.series).forEach((series) => {
-            series.scale = d3.scale.linear().domain([-2, max])
+            if (series.seriesKey in max)
+                series.scale = d3.scale.linear().domain([0, max[series.seriesKey]])
         })
 
         if (this.today < this.scenario[0].days()) {
@@ -165,7 +176,9 @@ var P = {
             window.setTimeout(() => {
                 this.runSimulation()
                 if (this.yaxis)
-                    this.yaxis.scale = d3.scale.linear().domain([-2, max])
+                    this.yaxis.scale = d3.scale.linear().domain([0, max.cases])
+                if (this.y2axis)
+                    this.y2axis.scale = d3.scale.linear().domain([0, max.deaths])
                 if (this.graph)
                     this.graph.render()
             }, (new Date().getTime() - starttime))
@@ -251,22 +264,27 @@ var P = {
                     m('.col-1', m(configInput, {stream: sc.vaccineHalflife[1], label: 'vacc.halflife', hint: 'days vaccine takes to fade to 1/2 effectiveness'})),
                 ])]
             }),
-            m('.row', {style: {minHeight: '30em'}}, [
+            m('.', {style: {width: '100%', height: '0.5em'}}),
+            m('.row', {style: {height: '30em'}}, [
                 m('.col-1.h-100', {
                     style: {padding: '0'},
                     oncreate: (vnode) => { elements.axisy = vnode.dom; this.setup() },
                 }),
-                m('.col-9.h-100', {
+                m('.col-8.h-100', {
                     style: {padding: '0'},
                     oncreate: (vnode) => { elements.graph = vnode.dom; this.setup() },
                 }),
-                m('.', {style: {padding: '0 0 0 0.5em', overflow: 'hidden', position: 'relative'}}, [
+                m('.col-1.h-100', {
+                    style: {padding: '0'},
+                    oncreate: (vnode) => { elements.axisy2 = vnode.dom; this.setup() },
+                }),
+                m('.col-2.h-100', {style: {padding: '0 0 0 0.5em', overflow: 'hidden'}}, [
                     m('#legend', {
                         oncreate: (vnode) => { elements.legend = vnode.dom; this.setup() },
                     }),
                 ]),
             ]),
-            m('.row', {style: {}}, [
+            m('.row', [
                 m('.col-1.h-100'),
                 m('.col-9.h-100', {
                     style: {padding: '0'},
