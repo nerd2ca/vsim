@@ -306,9 +306,9 @@ var Page = {
         this.store = {
             params: {
                 population: m.stream(100000),
-                days: m.stream(250),
+                days: m.stream(365),
             },
-            scenario: [0.8, 0.9].map((vr) => { return {
+            scenario: [0.87, 0.93].map((vr) => { return {
                 infected0: m.stream(500),
                 R0: m.stream(2),
                 infectionDuration: m.stream(14),
